@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
@@ -28,6 +29,7 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -70,6 +72,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      */
     private UserLoginTask mAuthTask = null;
 
+    public static final String INTENT_EMAIL = "mEmail";
     // UI references.
     private AutoCompleteTextView mEmailView;
     private EditText mPasswordView;
@@ -103,6 +106,10 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
+                CheckBox checkBox = (CheckBox) findViewById(R.id.remeber_checkbox);
+                if(checkBox.isChecked()){
+
+                }
                 attemptLogin();
             }
         });
@@ -111,7 +118,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         mRegisterButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                Intent intent = new Intent(mContext, RegisterActivity.class);
+                startActivity(intent);
+                finish();
             }
         });
 
@@ -122,7 +131,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     }
 
     // Get vaildcode & key from Server
-    public void prepare(){
+    private void prepare(){
         NetworkTask networkTask = new HttpURLConnectionNetworkTask(NetworkTask.POST);
         networkTask.execute("https://www.cjtellyou.xyz/chainblock/user/loginValidCode");
         networkTask.setResponseListener(new NetworkTask.ResponseListener() {
@@ -136,7 +145,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                     hasVaildcode = true;
                 }
                 catch(Exception e) {
-                    Toast.makeText(mContext,"Data Error", Toast.LENGTH_SHORT);
+                    Toast.makeText(mContext,"Data Error", Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -248,9 +257,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 //        return email.contains("@");
         Pattern emailpattern = Pattern.compile("^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\\.[a-zA-Z0-9_-]+)+$");
         Matcher emailmathcer = emailpattern.matcher(email);
-        if (emailmathcer.find())
-            return true;
-        return false;
+//        if (!emailmathcer.find())
+//            return false;
+        return true;
     }
 
     private boolean isPasswordValid(String password) {
@@ -380,7 +389,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                         "validCode=" + vaildcode,
                         "key=" + key);
             }
-
             setResponseListener(new NetworkTask.ResponseListener(){
                 @Override
                 public void onSuccess(String result) {
@@ -391,8 +399,11 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                     try {
                         json = new JSONObject(result);
                         if(json.getString("msg").equals("SUCCESS")){
+                            // start main activity
+                            Intent intent = new Intent(mContext,MainActivity.class);
+                            intent.putExtra(INTENT_EMAIL,mEmail);
+                            startActivity(intent);
                             finish();
-                            // start antother activity
                         }
                         else{
                             mPasswordView.setError(getString(R.string.error_incorrect_password));
@@ -401,11 +412,15 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                     }
                     catch(Exception e) {
                         Log.i(TAG,"Data Error");
+                        Toast.makeText(mContext,getString(R.string.error_incorrect_data),Toast.LENGTH_SHORT).show();
                     }
                 }
                 @Override
                 public void onError(String error) {
+                    mAuthTask = null;
+                    showProgress(false);
                     Log.i(TAG,error);
+                    Toast.makeText(mContext,error,Toast.LENGTH_SHORT).show();
                 }
             });
         }
