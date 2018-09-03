@@ -39,6 +39,8 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static android.Manifest.permission.READ_CONTACTS;
 
@@ -102,6 +104,14 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             @Override
             public void onClick(View view) {
                 attemptLogin();
+            }
+        });
+
+        Button mRegisterButton = (Button) findViewById(R.id.register_button);
+        mRegisterButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
             }
         });
 
@@ -236,7 +246,11 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private boolean isEmailValid(String email) {
         //TODO: Replace this with your own logic
 //        return email.contains("@");
-        return true;
+        Pattern emailpattern = Pattern.compile("^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\\.[a-zA-Z0-9_-]+)+$");
+        Matcher emailmathcer = emailpattern.matcher(email);
+        if (emailmathcer.find())
+            return true;
+        return false;
     }
 
     private boolean isPasswordValid(String password) {
@@ -378,6 +392,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                         json = new JSONObject(result);
                         if(json.getString("msg").equals("SUCCESS")){
                             finish();
+                            // start antother activity
                         }
                         else{
                             mPasswordView.setError(getString(R.string.error_incorrect_password));
