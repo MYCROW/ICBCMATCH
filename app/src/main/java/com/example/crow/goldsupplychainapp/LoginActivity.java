@@ -73,6 +73,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private UserLoginTask mAuthTask = null;
 
     public static final String INTENT_EMAIL = "mEmail";
+    public static final String INTENT_NICK = "mNickname";
     // UI references.
     private AutoCompleteTextView mEmailView;
     private EditText mPasswordView;
@@ -120,7 +121,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, RegisterActivity.class);
                 startActivity(intent);
-                finish();
+                //finish();
             }
         });
 
@@ -367,6 +368,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         private final String mEmail;
         private final String mPassword;
+        private String mNickname;
 
         UserLoginTask(String email, String password) {
             super(NetworkTask.POST);
@@ -400,15 +402,22 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                         json = new JSONObject(result);
                         if(json.getString("msg").equals("SUCCESS")){
                             // start main activity
+                            mNickname = json.getJSONObject("data").getJSONObject("user").getString("nickname");
                             Intent intent = new Intent(mContext,MainActivity.class);
                             intent.putExtra(INTENT_EMAIL,mEmail);
+                            intent.putExtra(INTENT_NICK,mNickname);
                             startActivity(intent);
                             finish();
+                        }
+                        else if(json.getString("msg").equals("validCode err")){
+                            Toast.makeText(mContext,"Prepare Error",Toast.LENGTH_SHORT).show();
                         }
                         else{
                             mPasswordView.setError(getString(R.string.error_incorrect_password));
                             mPasswordView.requestFocus();
                         }
+                        hasVaildcode = false;
+                        prepare();
                     }
                     catch(Exception e) {
                         Log.i(TAG,"Data Error");
